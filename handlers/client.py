@@ -11,18 +11,33 @@ from data_base import database
 from keyboard import Regestration_kb
 from keyboard import cjd
 
+ID = None
+save_id = 0
+
 conn = sqlite3.connect('super_roflo.db')
 cursor = conn.cursor()
 
-ID = None
+modearator = ['@krutoy_cell']
 
 class FSMRegestration(StatesGroup):
+    custom_id = State()
     name = State()
     adres = State()
     number = State()
 
 class FSMClient(StatesGroup):
     name2 = State()
+
+class User:
+    id_counter = 0
+
+    def __init__(self, custom_id, name, adres, number):
+        self.custom_id = custom_id
+        self.name = name
+        self.adres = adres
+        self.number = number
+        self.id = User.id_counter
+        User.id_counter += 1
 
 @dp.message_handler(commands=['start', 'help'])
 async def command_start(message: types.message):
@@ -49,31 +64,38 @@ async def info_service(message: types.Message):
     else:
         await message.answer('Иди зарегайся')
 
-@dp.message_handler(commands='Регестрация', state=None)
-async def cm_start(message: types.Message):
+@dp.message_handler(commands='Регистрация', state=None)
+async def start_registration(message: types.Message):
+    global ID
+    ID = message.from_user.id
     await FSMRegestration.name.set()
-    await message.reply('Введи своё имя')
+    await message.reply('Введите ваше имя')
 
 @dp.message_handler(state=FSMRegestration.name)
 async def load_name(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['name'] = message.text
     await FSMRegestration.next()
-    await message.reply('Теперь введи свой адрес')
-@dp.message_handler(content_types=['adres'], state=FSMRegestration.adres)
+    await message.reply('Теперь введите ваш адрес')
+
+@dp.message_handler(state=FSMRegestration.adres)
 async def load_adres(message: types.Message, state: FSMContext):
-    async with state.proxy()as data:
+    async with state.proxy() as data:
         data['adres'] = message.text
     await FSMRegestration.next()
-    await message.reply('Тепрь введи свой номер телефона')
-@dp.message_handler(content_types=['number'], state=FSMRegestration.number)
+    await message.reply('Теперь введите ваш номер телефона')
+
+@dp.message_handler(state=FSMRegestration.number)
 async def load_number(message: types.Message, state: FSMContext):
-    global ID
-    ID = message.from_user.id
     async with state.proxy() as data:
         data['number'] = message.text
+    await message.answer('Регестрация завершена', reply_markup=keyboard.client_kb.prikol)
+
     await database.sql_add_command(state)
     await state.finish()
+
+
+
 
 @dp.message_handler(state="*", commands='отмена')
 @dp.message_handler(Text(equals='отмена', ignore_case=True), state="*")
@@ -99,8 +121,8 @@ async def delete_items(message: types.Message):
 
 @dp.message_handler(commands=['client'])
 async def client(message: types.Message):
-    if message.from_user.id == ID:
-        await message.reply('Что нужно', reply_markup=keyboard.client_kb.prikol)
+    if message.from_user.username == modearator:
+        await message.answer('Что нужно', reply_markup=keyboard.client_kb.prikol)
     else:
         await message.answer('Ди зарегайся')
 
@@ -109,12 +131,10 @@ def register_handlers_client(dp: Dispatcher):
     dp.register_message_handler(call_service, commands=['Заказ_услуги'])
     dp.register_message_handler(info_service, commands=['Информация_об_услугах'])
     dp.register_message_handler(command_start, commands=['start', 'help'])
-    dp.register_message_handler(cm_start, commands=['Регестрация'], state=None)
+    dp.register_message_handler(start_registration, commands=['Регестрация'], state=None)
     dp.register_message_handler(list, commands=['Лист'])
     dp.register_message_handler(load_name, state=FSMRegestration.name)
     dp.register_message_handler(load_adres, state=FSMRegestration.adres)
     dp.register_message_handler(load_number, state=FSMRegestration.number)
     dp.message_handler(cancel_handler, state="*", commands='отмена')
     dp.message_handler(cancel_handler, Text(equals='отмена', ignore_case=True), state="*")
-
-
