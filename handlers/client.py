@@ -44,7 +44,7 @@ async def command_start(message: types.message):
     await bot.send_message(message.from_user.id, 'Здарова', reply_markup=Regestration_kb.button_case_regestration)
     await message.delete()
 
-@dp.message_handler(commands=['Лист'])
+@dp.message_handler(commands=['list'])
 async def list(message: types.Message):
     await database.sql_read(message)
 
@@ -64,7 +64,7 @@ async def info_service(message: types.Message):
     else:
         await message.answer('Иди зарегайся')
 
-@dp.message_handler(commands='Регистрация', state=None)
+@dp.message_handler(commands='register', state=None)
 async def start_registration(message: types.Message):
     global ID
     ID = message.from_user.id
@@ -111,11 +111,11 @@ async def del_callback_run(callback_querry: types.CallbackQuery):
     await database.sql_delete_command(callback_querry.data.replace('del ', ''))
     await callback_querry.answer(text=f'{callback_querry.data.replace("del ", "")} удалена.', show_alert=True)
 
-@dp.message_handler(commands='Удалить')
+@dp.message_handler(commands='del')
 async def delete_items(message: types.Message):
     read = await database.sql_read2()
     for ret in read:
-        await bot.send_message(message.from_user.id, f'Имя: {ret[0]}\nВаш адрес: {ret[1]}\nНомер телефона: {ret[2]}')
+        await bot.send_message(message.from_user.id, f'Каким зарегался: {ret[0]}\nИмя: {ret[1]}\nВаш адрес: {ret[2]}\nНомер телефона: {ret[3]}')
         await bot.send_message(message.from_user.id, text='^^^', reply_markup=InlineKeyboardMarkup().\
                                 add(InlineKeyboardButton(f'Удалить {ret[0]}', callback_data=f'del {ret[0]}')))
 
@@ -131,8 +131,8 @@ def register_handlers_client(dp: Dispatcher):
     dp.register_message_handler(call_service, commands=['Заказ_услуги'])
     dp.register_message_handler(info_service, commands=['Информация_об_услугах'])
     dp.register_message_handler(command_start, commands=['start', 'help'])
-    dp.register_message_handler(start_registration, commands=['Регестрация'], state=None)
-    dp.register_message_handler(list, commands=['Лист'])
+    dp.register_message_handler(start_registration, commands=['register'], state=None)
+    dp.register_message_handler(list, commands=['list'])
     dp.register_message_handler(load_name, state=FSMRegestration.name)
     dp.register_message_handler(load_adres, state=FSMRegestration.adres)
     dp.register_message_handler(load_number, state=FSMRegestration.number)

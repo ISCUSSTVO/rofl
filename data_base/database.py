@@ -18,11 +18,11 @@ async def sql_add_command(state):
 
 async def sql_read(message):
     for ret in cur.execute('SELECT * FROM list').fetchall():
-        await message.answer(f'Имя: {ret[0]}\nВаш адрес: {ret[1]}\nНомер телефона: {ret[2]}')
+        await message.answer(f'Имя: {ret[1]}\nВаш адрес: {ret[2]}\nНомер телефона: {ret[3]}')
 
 async def sql_read2():
     return cur.execute('SELECT * FROM list').fetchall()
 
 async def sql_delete_command(data):
-    cur.execute('DELETE FROM list WHERE name == ?', (data,))
+    cur.execute('DELETE FROM list WHERE id == ?', (data,))
     base.commit()
