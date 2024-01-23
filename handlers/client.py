@@ -3,7 +3,7 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 
 import keyboard.client_kb
 from createbot import dp, bot
@@ -17,7 +17,9 @@ save_id = 0
 conn = sqlite3.connect('super_roflo.db')
 cursor = conn.cursor()
 
-modearator = ['@krutoy_cell']
+moderator = ['krutoy_cell']
+
+previous_messages = {}
 
 class FSMRegestration(StatesGroup):
     custom_id = State()
@@ -25,77 +27,87 @@ class FSMRegestration(StatesGroup):
     adres = State()
     number = State()
 
-class FSMClient(StatesGroup):
-    name2 = State()
-
-class User:
-    id_counter = 0
-
-    def __init__(self, custom_id, name, adres, number):
-        self.custom_id = custom_id
-        self.name = name
-        self.adres = adres
-        self.number = number
-        self.id = User.id_counter
-        User.id_counter += 1
-
 @dp.message_handler(commands=['start', 'help'])
 async def command_start(message: types.message):
     await bot.send_message(message.from_user.id, 'Здарова', reply_markup=Regestration_kb.button_case_regestration)
     await message.delete()
 
-@dp.message_handler(commands=['list'])
-async def list(message: types.Message):
-    await database.sql_read(message)
-
-@dp.message_handler(commands='Заказ_услуги', state=None)
-async def call_service(message: types.Message):
-    if message.from_user.id == ID:
-        await message.answer('Выбери услугу', reply_markup=cjd.asd)
-        await message.delete()
-    else:
-        await message.answer('Иди зарегайся')
-
-@dp.message_handler(commands=['Информация_об_услугах'], state=None)
-async def info_service(message: types.Message):
-    if message.from_user.id == ID:
-        await message.answer('Выберите услугу по которой хотите получить информацию', reply_markup=cjd.asd)
-        await message.delete()
-    else:
-        await message.answer('Иди зарегайся')
-
-@dp.message_handler(commands='register', state=None)
-async def start_registration(message: types.Message):
+@dp.callback_query_handler(text_contains='register', state=None)
+async def start_registration(call: CallbackQuery):
     global ID
-    ID = message.from_user.id
     await FSMRegestration.name.set()
-    await message.reply('Введите ваше имя')
+    await call.message.answer('Введите ваше имя')
+    await bot.message.delete()
 
 @dp.message_handler(state=FSMRegestration.name)
 async def load_name(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['name'] = message.text
     await FSMRegestration.next()
-    await message.reply('Теперь введите ваш адрес')
+    await message.answer('Теперь введите ваш адрес')
 
 @dp.message_handler(state=FSMRegestration.adres)
 async def load_adres(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['adres'] = message.text
     await FSMRegestration.next()
-    await message.reply('Теперь введите ваш номер телефона')
+    await message.answer('Теперь введите ваш номер телефона')
 
 @dp.message_handler(state=FSMRegestration.number)
 async def load_number(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['number'] = message.text
-    await message.answer('Регестрация завершена', reply_markup=keyboard.client_kb.prikol)
+    await message.answer('Регестрация завершена')
+    read = await database.sql_read2()
+    for ret in read:
+        await message.answer(f'Имя: {ret[1]}\nНомер телефона: {ret[3]}')
+    await message.answer('Проверьте есть ли ваши данные в списке', reply_markup=keyboard.client_kb.superultrarofl)
 
     await database.sql_add_command(state)
     await state.finish()
 
+@dp.message_handler(commands='del')
+async def delete_items(message: types.Message):
+    read = await database.sql_read2()
+    for ret in read:
+        await bot.send_message(message.from_user.id, f'Каким зарегался: {ret[0]}\nИмя: {ret[1]}\nВаш адрес: {ret[2]}\nНомер телефона: {ret[3]}')
+        await bot.send_message(message.from_user.id, text='^^^', reply_markup=InlineKeyboardMarkup().\
+                                add(InlineKeyboardButton(f'Удалить {ret[0]}', callback_data=f'del {ret[0]}')))
+
+@dp.message_handler(commands=['list'])
+async def list(message: types.Message):
+    await database.sql_read(message)
 
 
+@dp.callback_query_handler(text_contains='info')
+async def call_service(call: CallbackQuery):
+    await call.message.answer('Выбери услугу', reply_markup=cjd.asd)
+    await call.message.delete()
+
+@dp.callback_query_handler(text_contains='first')
+async def call_service(call: CallbackQuery):
+    await call.message.answer('чето там чето там', reply_markup=keyboard.client_kb.rofl)
+    await call.message.delete()
+
+@dp.callback_query_handler(text_contains='second')
+async def call_service(call: CallbackQuery):
+    await call.message.answer('бла бла бла', reply_markup=keyboard.client_kb.rofl)
+    await call.message.delete()
+
+@dp.callback_query_handler(text_contains='third')
+async def call_service(call: CallbackQuery):
+    await call.message.answer('ещё одна параша', reply_markup=keyboard.client_kb.rofl)
+    await call.message.delete()
+
+@dp.callback_query_handler(text_contains='call')
+async def call_service(call: CallbackQuery):
+    await call.message.answer('Заказал, молодец, теперь выйди', reply_markup=keyboard.client_kb.superrofl)
+    await call.message.delete()
+
+@dp.callback_query_handler(text_contains='back')
+async def back(call: CallbackQuery):
+    await call.message.answer('Выбери услугу', reply_markup=cjd.asd)
+    await call.message.delete()
 
 @dp.message_handler(state="*", commands='отмена')
 @dp.message_handler(Text(equals='отмена', ignore_case=True), state="*")
@@ -121,17 +133,18 @@ async def delete_items(message: types.Message):
 
 @dp.message_handler(commands=['client'])
 async def client(message: types.Message):
-    if message.from_user.username == modearator:
-        await message.answer('Что нужно', reply_markup=keyboard.client_kb.prikol)
-    else:
-        await message.answer('Ди зарегайся')
+    if message.from_user.username in moderator:
+        await message.answer('че надо', reply_markup=keyboard.client_kb.admin)
+
+
 
 def register_handlers_client(dp: Dispatcher):
     dp.register_message_handler(client, commands=['client'])
-    dp.register_message_handler(call_service, commands=['Заказ_услуги'])
-    dp.register_message_handler(info_service, commands=['Информация_об_услугах'])
+    dp.register_callback_query_handler(call_service, text_contains='7')
     dp.register_message_handler(command_start, commands=['start', 'help'])
-    dp.register_message_handler(start_registration, commands=['register'], state=None)
+    dp.register_callback_query_handler(start_registration, text_contains='9')
+    dp.register_callback_query_handler(call_service, text_contains='call')
+    dp.register_callback_query_handler(back, text_contains='back')
     dp.register_message_handler(list, commands=['list'])
     dp.register_message_handler(load_name, state=FSMRegestration.name)
     dp.register_message_handler(load_adres, state=FSMRegestration.adres)
