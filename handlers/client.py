@@ -29,7 +29,7 @@ class FSMRegestration(StatesGroup):
 
 @dp.message_handler(commands=['start', 'help'])
 async def command_start(message: types.message):
-    await bot.send_message(message.from_user.id, 'Здарова', reply_markup=Regestration_kb.button_case_regestration)
+    await message.answer('Здарова', reply_markup=Regestration_kb.button_case_regestration)
     await message.delete()
 
 @dp.callback_query_handler(text_contains='register', state=None)
@@ -37,7 +37,6 @@ async def start_registration(call: CallbackQuery):
     global ID
     await FSMRegestration.name.set()
     await call.message.answer('Введите ваше имя')
-    await bot.message.delete()
 
 @dp.message_handler(state=FSMRegestration.name)
 async def load_name(message: types.Message, state: FSMContext):
@@ -58,11 +57,12 @@ async def load_number(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['number'] = message.text
     await message.answer('Регестрация завершена')
-    read = await database.sql_read2()
-    for ret in read:
-        await message.answer(f'Имя: {ret[1]}\nНомер телефона: {ret[3]}')
-    await message.answer('Проверьте есть ли ваши данные в списке', reply_markup=keyboard.client_kb.superultrarofl)
+    name = data['name']
+    number = data['number']
+    adres = data['adres']
+    await message.answer(f'{name}\n{adres}\n{number}')
 
+    await message.answer('Всё верно?', reply_markup=keyboard.client_kb.superultrarofl)
     await database.sql_add_command(state)
     await state.finish()
 
