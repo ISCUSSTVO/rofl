@@ -1,5 +1,4 @@
 import sqlite3 as sq
-import sqlite3
 
 
 def sql_start():
@@ -8,7 +7,7 @@ def sql_start():
     cur = base.cursor()
     if base:
         print('Data base connected: OK')
-    base.execute("CREATE TABLE IF NOT EXISTS list(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT , adres TEXT, number TEXT)")
+    base.execute("CREATE TABLE IF NOT EXISTS list(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT , adres TEXT, number TEXT, new_adres TEXT, rooms INT)")
     base.commit()
 
 async def sql_add_command(state):

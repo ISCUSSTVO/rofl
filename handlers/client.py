@@ -26,11 +26,32 @@ class FSMRegestration(StatesGroup):
     name = State()
     adres = State()
     number = State()
+    new_adres = State()
+    rooms = State()
 
 @dp.message_handler(commands=['start', 'help'])
 async def command_start(message: types.message):
-    await message.answer('Здарова', reply_markup=Regestration_kb.button_case_regestration)
+    await message.answer('Здарова', reply_markup=keyboard.Regestration_kb.button_case_regestration)
     await message.delete()
+
+@dp.callback_query_handler(text_contains=['main_win'])
+async def main_win(call: CallbackQuery):
+    await call.message.answer('Куда вы хотите заказать уборку', reply_markup=keyboard.client_kb.a9iokjk)
+
+@dp.callback_query_handler(text_contains=['twink'])
+async def new_adres(call: CallbackQuery, state: FSMContext):
+    await FSMRegestration.new_adres.set()
+    await call.message.answer('Введите новый адрес')
+
+@dp.message_handler(state = FSMRegestration.new_adres)
+async def load_new_adres(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['new_adres'] = message.text
+    new_adres = data['new_adres']
+    await message.answer(f' {new_adres}')
+    await message.answer('Точно он?', reply_markup=keyboard.client_kb.qw7e8uh)
+    await state.finish()
+
 
 @dp.callback_query_handler(text_contains='register', state=None)
 async def start_registration(call: CallbackQuery):
@@ -59,10 +80,9 @@ async def load_number(message: types.Message, state: FSMContext):
     await message.answer('Регестрация завершена')
     name = data['name']
     number = data['number']
-    adres = data['adres']
-    await message.answer(f'{name}\n{adres}\n{number}')
+    await message.answer(f' {name}\n {number}')
 
-    await message.answer('Всё верно?', reply_markup=keyboard.client_kb.superultrarofl)
+    await message.answer('Всё верно?', reply_markup=keyboard.client_kb.asdjk)
     await database.sql_add_command(state)
     await state.finish()
 
@@ -79,30 +99,55 @@ async def list(message: types.Message):
     await database.sql_read(message)
 
 
-@dp.callback_query_handler(text_contains='info')
-async def call_service(call: CallbackQuery):
-    await call.message.answer('Выбери услугу', reply_markup=cjd.asd)
+
+
+@dp.callback_query_handler(text_contains='main')
+async def info(call: CallbackQuery):
+    await call.message.answer('Введи количество комнат')
+    await FSMRegestration.rooms.set()
     await call.message.delete()
 
+@dp.message_handler(state = FSMRegestration.name)
+async def rooms(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['rooms'] = message.text
+    await state.finish()
+    await message.answer('Какую уборку желаете?', reply_markup=keyboard.cjd.asd)
+
+
+
+
 @dp.callback_query_handler(text_contains='first')
-async def call_service(call: CallbackQuery):
-    await call.message.answer('чето там чето там', reply_markup=keyboard.client_kb.rofl)
+async def wqe(call: CallbackQuery):
+    await call.message.answer('Введите количество комнат', reply_markup=keyboard.client_kb.rofl1)
     await call.message.delete()
 
 @dp.callback_query_handler(text_contains='second')
-async def call_service(call: CallbackQuery):
-    await call.message.answer('бла бла бла', reply_markup=keyboard.client_kb.rofl)
+async def qwe(call: CallbackQuery):
+    await call.message.answer('Введите количество комнат', reply_markup=keyboard.client_kb.rofl2)
     await call.message.delete()
 
 @dp.callback_query_handler(text_contains='third')
-async def call_service(call: CallbackQuery):
-    await call.message.answer('ещё одна параша', reply_markup=keyboard.client_kb.rofl)
+async def ewq(call: CallbackQuery):
+    await call.message.answer('Введите количество комнат', reply_markup=keyboard.client_kb.rofl3)
     await call.message.delete()
 
-@dp.callback_query_handler(text_contains='call')
+@dp.callback_query_handler(text_contains='call1')
 async def call_service(call: CallbackQuery):
-    await call.message.answer('Заказал, молодец, теперь выйди', reply_markup=keyboard.client_kb.superrofl)
+    await call.message.answer('оывла', reply_markup=keyboard.client_kb.superrofl)
     await call.message.delete()
+
+@dp.callback_query_handler(text_contains='call2')
+async def call_service1(call: CallbackQuery):
+    await call.message.answer('плати три тыща\nhttps://sbp.nspk.ru/?ysclid=ls30ud2rj5955939254', reply_markup=keyboard.client_kb.superrofl)
+    await call.message.delete()
+
+@dp.callback_query_handler(text_contains='call3')
+async def call_service2(call: CallbackQuery):
+    await call.message.answer('плати пять тыща\nhttps://sbp.nspk.ru/?ysclid=ls30ud2rj5955939254', reply_markup=keyboard.client_kb.superrofl)
+    await call.message.delete()
+
+
 
 @dp.callback_query_handler(text_contains='back')
 async def back(call: CallbackQuery):
@@ -136,7 +181,17 @@ async def client(message: types.Message):
     if message.from_user.username in moderator:
         await message.answer('че надо', reply_markup=keyboard.client_kb.admin)
 
+@dp.message_handler(commands=['lox'])
+async def infoser(message: types.Message):
+    await message.answer('Ди нахер делается он', reply_markup=keyboard.client_kb.qwerts)
 
+@dp.callback_query_handler(text_contains='sterpet')
+async def sterpet(call: types.CallbackQuery):
+    await call.answer('Терпила ебанная')
+
+@dp.callback_query_handler(text_contains='dinaxuy')
+async def dinaxuy(call: types.CallbackQuery):
+    await call.answer('ок иду')
 
 def register_handlers_client(dp: Dispatcher):
     dp.register_message_handler(client, commands=['client'])
@@ -144,8 +199,13 @@ def register_handlers_client(dp: Dispatcher):
     dp.register_message_handler(command_start, commands=['start', 'help'])
     dp.register_callback_query_handler(start_registration, text_contains='9')
     dp.register_callback_query_handler(call_service, text_contains='call')
+    dp.register_callback_query_handler(call_service1, text_contains='call1')
+    dp.register_callback_query_handler(call_service2, text_contains='call2')
     dp.register_callback_query_handler(back, text_contains='back')
     dp.register_message_handler(list, commands=['list'])
+    dp.register_callback_query_handler(dinaxuy, text_contains='dinaxuy')
+    dp.register_callback_query_handler(sterpet, text_contains='sterpet')
+    dp.register_message_handler(infoser, commands=['lox'])
     dp.register_message_handler(load_name, state=FSMRegestration.name)
     dp.register_message_handler(load_adres, state=FSMRegestration.adres)
     dp.register_message_handler(load_number, state=FSMRegestration.number)
