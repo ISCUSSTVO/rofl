@@ -181,18 +181,6 @@ async def client(message: types.Message):
     if message.from_user.username in moderator:
         await message.answer('че надо', reply_markup=keyboard.client_kb.admin)
 
-@dp.message_handler(commands=['lox'])
-async def infoser(message: types.Message):
-    await message.answer('Ди нахер делается он', reply_markup=keyboard.client_kb.qwerts)
-
-@dp.callback_query_handler(text_contains='sterpet')
-async def sterpet(call: types.CallbackQuery):
-    await call.answer('Терпила ебанная')
-
-@dp.callback_query_handler(text_contains='dinaxuy')
-async def dinaxuy(call: types.CallbackQuery):
-    await call.answer('ок иду')
-
 def register_handlers_client(dp: Dispatcher):
     dp.register_message_handler(client, commands=['client'])
     dp.register_callback_query_handler(call_service, text_contains='7')
@@ -203,9 +191,6 @@ def register_handlers_client(dp: Dispatcher):
     dp.register_callback_query_handler(call_service2, text_contains='call2')
     dp.register_callback_query_handler(back, text_contains='back')
     dp.register_message_handler(list, commands=['list'])
-    dp.register_callback_query_handler(dinaxuy, text_contains='dinaxuy')
-    dp.register_callback_query_handler(sterpet, text_contains='sterpet')
-    dp.register_message_handler(infoser, commands=['lox'])
     dp.register_message_handler(load_name, state=FSMRegestration.name)
     dp.register_message_handler(load_adres, state=FSMRegestration.adres)
     dp.register_message_handler(load_number, state=FSMRegestration.number)
