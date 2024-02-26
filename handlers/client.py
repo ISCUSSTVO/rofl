@@ -19,20 +19,18 @@ cursor = conn.cursor()
 
 moderator = ['krutoy_cell']
 
-previous_messages = {}
+qwe = int(5000)
+asd = int(3000)
+zxc = int(2000)
 
 class FSMRegestration(StatesGroup):
     custom_id = State()
     name = State()
     adres = State()
     number = State()
-    new_adres = State()
     rooms = State()
+    new_adres = State()
 
-@dp.message_handler(commands=['start', 'help'])
-async def command_start(message: types.message):
-    await message.answer('Здарова', reply_markup=keyboard.Regestration_kb.button_case_regestration)
-    await message.delete()
 
 @dp.callback_query_handler(text_contains=['main_win'])
 async def main_win(call: CallbackQuery):
@@ -50,10 +48,14 @@ async def load_new_adres(message: types.Message, state: FSMContext):
     new_adres = data['new_adres']
     await message.answer(f' {new_adres}')
     await message.answer('Точно он?', reply_markup=keyboard.client_kb.qw7e8uh)
+    await database.sql_add_command1(state)
     await state.finish()
 
+@dp.message_handler(commands=['st'])
+async def start(message: types.Message):
+    await message.answer('/', reply_markup=keyboard.client_kb.sdj)
 
-@dp.callback_query_handler(text_contains='register', state=None)
+@dp.callback_query_handler(text_contains = ['register'], state=None)
 async def start_registration(call: CallbackQuery):
     global ID
     await FSMRegestration.name.set()
@@ -71,17 +73,24 @@ async def load_adres(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['adres'] = message.text
     await FSMRegestration.next()
-    await message.answer('Теперь введите ваш номер телефона')
+    await message.answer('номер')
 
 @dp.message_handler(state=FSMRegestration.number)
 async def load_number(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['number'] = message.text
-    await message.answer('Регестрация завершена')
+    await FSMRegestration.next()
+    await message.answer('комнаты')
+
+
+@dp.message_handler(state=FSMRegestration.rooms)
+async def load_rooms(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['rooms'] = message.text
     name = data['name']
     number = data['number']
-    await message.answer(f' {name}\n {number}')
-
+    room = data['rooms']
+    await message.answer(f' {name}\n {number}\n {room}')
     await message.answer('Всё верно?', reply_markup=keyboard.client_kb.asdjk)
     await database.sql_add_command(state)
     await state.finish()
@@ -94,52 +103,36 @@ async def delete_items(message: types.Message):
         await bot.send_message(message.from_user.id, text='^^^', reply_markup=InlineKeyboardMarkup().\
                                 add(InlineKeyboardButton(f'Удалить {ret[0]}', callback_data=f'del {ret[0]}')))
 
-@dp.message_handler(commands=['list'])
-async def list(message: types.Message):
-    await database.sql_read(message)
+@dp.callback_query_handler(text_contains=['info'])
+async def info(call: types.CallbackQuery):
+    await call.message.answer('чё ты хочешь чмо', reply_markup=keyboard.cjd.asd)
 
-
-
-
-@dp.callback_query_handler(text_contains='main')
-async def info(call: CallbackQuery):
-    await call.message.answer('Введи количество комнат')
-    await FSMRegestration.rooms.set()
-    await call.message.delete()
-
-@dp.message_handler(state = FSMRegestration.name)
-async def rooms(message: types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['rooms'] = message.text
-    await state.finish()
-    await message.answer('Какую уборку желаете?', reply_markup=keyboard.cjd.asd)
-
-
-
-
+@dp.callback_query_handler(text_contains=['dermo'])
+async def dermo(call: CallbackQuery):
+    await call.message.answer(f'иди нахер не готово ещё', reply_markup=keyboard.client_kb.zxc3)
 @dp.callback_query_handler(text_contains='first')
 async def wqe(call: CallbackQuery):
-    await call.message.answer('Введите количество комнат', reply_markup=keyboard.client_kb.rofl1)
+    await call.message.answer('чё то ещё?', reply_markup=keyboard.client_kb.zxc)
     await call.message.delete()
 
 @dp.callback_query_handler(text_contains='second')
 async def qwe(call: CallbackQuery):
-    await call.message.answer('Введите количество комнат', reply_markup=keyboard.client_kb.rofl2)
+    await call.message.answer('чё то ещё?', reply_markup=keyboard.client_kb.zxc1)
     await call.message.delete()
 
 @dp.callback_query_handler(text_contains='third')
 async def ewq(call: CallbackQuery):
-    await call.message.answer('Введите количество комнат', reply_markup=keyboard.client_kb.rofl3)
+    await call.message.answer('чё то ещё?', reply_markup=keyboard.client_kb.zxc2)
     await call.message.delete()
 
 @dp.callback_query_handler(text_contains='call1')
 async def call_service(call: CallbackQuery):
-    await call.message.answer('оывла', reply_markup=keyboard.client_kb.superrofl)
+    await call.message.answer(f'\nhttps://sbp.nspk.ru/?ysclid=ls30ud2rj5955939254', reply_markup=keyboard.client_kb.superrofl)
     await call.message.delete()
 
 @dp.callback_query_handler(text_contains='call2')
 async def call_service1(call: CallbackQuery):
-    await call.message.answer('плати три тыща\nhttps://sbp.nspk.ru/?ysclid=ls30ud2rj5955939254', reply_markup=keyboard.client_kb.superrofl)
+    await call.message.answer('\nhttps://sbp.nspk.ru/?ysclid=ls30ud2rj5955939254', reply_markup=keyboard.client_kb.superrofl)
     await call.message.delete()
 
 @dp.callback_query_handler(text_contains='call3')
@@ -176,21 +169,14 @@ async def delete_items(message: types.Message):
         await bot.send_message(message.from_user.id, text='^^^', reply_markup=InlineKeyboardMarkup().\
                                 add(InlineKeyboardButton(f'Удалить {ret[0]}', callback_data=f'del {ret[0]}')))
 
-@dp.message_handler(commands=['client'])
-async def client(message: types.Message):
-    if message.from_user.username in moderator:
-        await message.answer('че надо', reply_markup=keyboard.client_kb.admin)
 
 def register_handlers_client(dp: Dispatcher):
-    dp.register_message_handler(client, commands=['client'])
     dp.register_callback_query_handler(call_service, text_contains='7')
-    dp.register_message_handler(command_start, commands=['start', 'help'])
     dp.register_callback_query_handler(start_registration, text_contains='9')
     dp.register_callback_query_handler(call_service, text_contains='call')
     dp.register_callback_query_handler(call_service1, text_contains='call1')
     dp.register_callback_query_handler(call_service2, text_contains='call2')
     dp.register_callback_query_handler(back, text_contains='back')
-    dp.register_message_handler(list, commands=['list'])
     dp.register_message_handler(load_name, state=FSMRegestration.name)
     dp.register_message_handler(load_adres, state=FSMRegestration.adres)
     dp.register_message_handler(load_number, state=FSMRegestration.number)

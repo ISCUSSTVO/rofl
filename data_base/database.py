@@ -7,13 +7,22 @@ def sql_start():
     cur = base.cursor()
     if base:
         print('Data base connected: OK')
-    base.execute("CREATE TABLE IF NOT EXISTS list(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT , adres TEXT, number TEXT, new_adres TEXT, rooms INT)")
+    base.execute("CREATE TABLE IF NOT EXISTS list(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT , adres TEXT, number TEXT, rooms NUM)")
     base.commit()
+    base.execute("CREATE TABLE IF NOT EXISTS list1(new_adres TEXT)")
+    base.commit()
+
+async def sql_add_command1(state):
+    async with state.proxy() as data:
+        cur.execute("INSERT OR IGNORE INTO list1(new_adres) VALUES(?)", tuple(data.values()))
+        base.commit()
 
 async def sql_add_command(state):
     async with state.proxy() as data:
-        cur.execute("INSERT OR IGNORE INTO list(name, adres, number) VALUES(?, ?, ?)", tuple(data.values()))
+        cur.execute("INSERT OR IGNORE INTO list(name, adres, number, rooms) VALUES(?, ?, ?, ?)", tuple(data.values()))
         base.commit()
+
+
 
 async def sql_read(message):
     for ret in cur.execute('SELECT * FROM list').fetchall():
