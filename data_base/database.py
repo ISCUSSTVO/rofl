@@ -7,14 +7,20 @@ def sql_start():
     cur = base.cursor()
     if base:
         print('Data base connected: OK')
-    base.execute("CREATE TABLE IF NOT EXISTS list(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT , adres TEXT, number TEXT, rooms NUM)")
+    base.execute("CREATE TABLE IF NOT EXISTS list(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT , adres TEXT, number TEXT, rooms INT)")
     base.commit()
-    base.execute("CREATE TABLE IF NOT EXISTS list1(new_adres TEXT)")
+
+def sql_start1():
+    base1 = sq.connect('qwe.db')
+    zxc = base.cursor()
+    if base:
+        print('реди')
+    base1.execute("CREATE TABLE IF NOT EXISTS list1(new_adres TEXT, new_rooms INT)")
     base.commit()
 
 async def sql_add_command1(state):
     async with state.proxy() as data:
-        cur.execute("INSERT OR IGNORE INTO list1(new_adres) VALUES(?)", tuple(data.values()))
+        cur.execute("INSERT OR IGNORE INTO list1(new_adres, new_rooms) VALUES(?, ?)", tuple(data.values()))
         base.commit()
 
 async def sql_add_command(state):

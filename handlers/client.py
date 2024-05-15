@@ -30,6 +30,8 @@ class FSMRegestration(StatesGroup):
     number = State()
     rooms = State()
     new_adres = State()
+    new_rooms = State ()
+
 
 
 @dp.callback_query_handler(text_contains=['main_win'])
@@ -45,11 +47,18 @@ async def new_adres(call: CallbackQuery, state: FSMContext):
 async def load_new_adres(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['new_adres'] = message.text
+    global new_adres
     new_adres = data['new_adres']
-    await message.answer(f' {new_adres}')
-    await message.answer('Точно он?', reply_markup=keyboard.client_kb.qw7e8uh)
+    await message.answer('а комнат сколько?')
     await database.sql_add_command1(state)
     await state.finish()
+
+@dp.message_handler(state = FSMRegestration.new_rooms)
+async def load_new_rooms(message:types.Message, state:FSMContext):
+    async with state.proxy() as data:
+        new_rooms = data['new_rooms']
+        await message.answer(f'{new_adres}\n{new_rooms}')
+        await message.answer('Уверен?', reply_markup=keyboard.client_kb.qw7e8uh)
 
 @dp.message_handler(commands=['st'])
 async def start(message: types.Message):
@@ -87,10 +96,12 @@ async def load_number(message: types.Message, state: FSMContext):
 async def load_rooms(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['rooms'] = message.text
+        global rooms
     name = data['name']
     number = data['number']
-    room = data['rooms']
-    await message.answer(f' {name}\n {number}\n {room}')
+    rooms = data['rooms']
+
+    await message.answer(f' {name}\n {number}\n {rooms}')
     await message.answer('Всё верно?', reply_markup=keyboard.client_kb.asdjk)
     await database.sql_add_command(state)
     await state.finish()
@@ -127,7 +138,7 @@ async def ewq(call: CallbackQuery):
 
 @dp.callback_query_handler(text_contains='call1')
 async def call_service(call: CallbackQuery):
-    await call.message.answer(f'\nhttps://sbp.nspk.ru/?ysclid=ls30ud2rj5955939254', reply_markup=keyboard.client_kb.superrofl)
+    await call.message.answer(f'{rooms}', '\nhttps://sbp.nspk.ru/?ysclid=ls30ud2rj5955939254', reply_markup=keyboard.client_kb.superrofl)
     await call.message.delete()
 
 @dp.callback_query_handler(text_contains='call2')
