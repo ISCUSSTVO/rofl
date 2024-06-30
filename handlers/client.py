@@ -11,8 +11,6 @@ from data_base import database
 from keyboard import Regestration_kb
 from keyboard import cjd
 
-ID = None
-save_id = 0
 
 conn = sqlite3.connect('super_roflo.db')
 cursor = conn.cursor()
@@ -33,6 +31,29 @@ class FSMRegestration(StatesGroup):
     new_rooms = State ()
 
 
+@dp.message_handler(commands=['start'])
+async def start(message: types.Message):
+    await message.answer("Привет! Напиши мне имя, и я проверю его наличие в базе данных.")
+
+@dp.message_handler()
+async def check_number(message: types.Message):
+    global chell_rooms
+    conn = sqlite3.connect('super_roflo.db')
+    c = conn.cursor()
+    number = message.text.lower()
+    c.execute("SELECT * FROM list WHERE LOWER(number)=?", (number,))
+    result = c.fetchone()
+    if result:
+        user_name = result[1] 
+        address = result[2]
+        chell_rooms = result[4]
+        await message.answer(f"этот номер найден в базе данных. Имя: {user_name}.\nАдрес: {address}", reply_markup=keyboard.client_kb.bnm)
+        user = message.from_user
+        await dp.storage.update_data(user=user, user_name=user_name, address=address)
+    else:
+        await message.answer(f"Номер {message.text} не найден в базе данных.", reply_markup=keyboard.client_kb.sdj)
+    c.close()
+    conn.close()
 
 @dp.callback_query_handler(text_contains=['main_win'])
 async def main_win(call: CallbackQuery):
@@ -49,16 +70,19 @@ async def load_new_adres(message: types.Message, state: FSMContext):
         data['new_adres'] = message.text
     global new_adres
     new_adres = data['new_adres']
+    await FSMRegestration.new_rooms.set()
     await message.answer('а комнат сколько?')
-    await database.sql_add_command1(state)
-    await state.finish()
 
 @dp.message_handler(state = FSMRegestration.new_rooms)
-async def load_new_rooms(message:types.Message, state:FSMContext):
+async def load_new_rooms(message:types.Message, state: FSMContext):
     async with state.proxy() as data:
-        new_rooms = data['new_rooms']
-        await message.answer(f'{new_adres}\n{new_rooms}')
-        await message.answer('Уверен?', reply_markup=keyboard.client_kb.qw7e8uh)
+        data['new_rooms'] = message.text
+    global new_rooms
+    new_rooms = data['new_rooms']
+    await message.answer(f'{new_adres}\n{new_rooms}')
+    await message.answer('Уверен?', reply_markup=keyboard.client_kb.qw7e8uh)
+    await database.sql_add_command1(state)
+    await state.finish()
 
 @dp.message_handler(commands=['st'])
 async def start(message: types.Message):
@@ -101,7 +125,7 @@ async def load_rooms(message: types.Message, state: FSMContext):
     number = data['number']
     rooms = data['rooms']
 
-    await message.answer(f' {name}\n {number}\n {rooms}')
+    await message.answer(f' {name}\n{number}\n{rooms}')
     await message.answer('Всё верно?', reply_markup=keyboard.client_kb.asdjk)
     await database.sql_add_command(state)
     await state.finish()
@@ -138,17 +162,18 @@ async def ewq(call: CallbackQuery):
 
 @dp.callback_query_handler(text_contains='call1')
 async def call_service(call: CallbackQuery):
-    await call.message.answer(f'{rooms}', '\nhttps://sbp.nspk.ru/?ysclid=ls30ud2rj5955939254', reply_markup=keyboard.client_kb.superrofl)
+
+    await call.message.answer(f'{chell_rooms * 5000},https://sbp.nspk.ru/?ysclid=ls30ud2rj5955939254', reply_markup=keyboard.client_kb.superrofl)
     await call.message.delete()
 
 @dp.callback_query_handler(text_contains='call2')
 async def call_service1(call: CallbackQuery):
-    await call.message.answer('\nhttps://sbp.nspk.ru/?ysclid=ls30ud2rj5955939254', reply_markup=keyboard.client_kb.superrofl)
+    await call.message.answer(f'{chell_rooms * 3500}https://sbp.nspk.ru/?ysclid=ls30ud2rj5955939254', reply_markup=keyboard.client_kb.superrofl)
     await call.message.delete()
 
 @dp.callback_query_handler(text_contains='call3')
 async def call_service2(call: CallbackQuery):
-    await call.message.answer('плати пять тыща\nhttps://sbp.nspk.ru/?ysclid=ls30ud2rj5955939254', reply_markup=keyboard.client_kb.superrofl)
+    await call.message.answer(f'{chell_rooms * 1500}https://sbp.nspk.ru/?ysclid=ls30ud2rj5955939254', reply_markup=keyboard.client_kb.superrofl)
     await call.message.delete()
 
 

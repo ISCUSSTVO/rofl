@@ -7,15 +7,8 @@ def sql_start():
     cur = base.cursor()
     if base:
         print('Data base connected: OK')
-    base.execute("CREATE TABLE IF NOT EXISTS list(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT , adres TEXT, number TEXT, rooms INT)")
-    base.commit()
-
-def sql_start1():
-    base1 = sq.connect('qwe.db')
-    zxc = base.cursor()
-    if base:
-        print('реди')
-    base1.execute("CREATE TABLE IF NOT EXISTS list1(new_adres TEXT, new_rooms INT)")
+    base.execute("CREATE TABLE IF NOT EXISTS list(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT , adres TEXT, number TEXT, rooms INT)" and 
+                 "CREATE TABLE IF NOT EXISTS list1(new_adres TEXT, new_rooms INT)")
     base.commit()
 
 async def sql_add_command1(state):

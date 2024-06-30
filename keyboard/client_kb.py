@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-bq = InlineKeyboardButton('На основной', callback_data='main')
-bq1 = InlineKeyboardButton('Да', callback_data='main')
+bq = InlineKeyboardButton('На основной', callback_data='info')
+bq1 = InlineKeyboardButton('Да', callback_data='main_win')
 asdh = InlineKeyboardButton('Да', callback_data='dermo')
 asd2h = InlineKeyboardButton('Нет', callback_data='call1')
 asd5h = InlineKeyboardButton('Нет', callback_data='call2')
@@ -49,3 +49,5 @@ admin = InlineKeyboardMarkup(resize_keyboard=True)\
     .row(b1).add(b2, b0, b3, b4, b11)
 sdj = InlineKeyboardMarkup(resize_keyboard=True)\
     .add(b0)
+bnm = InlineKeyboardMarkup(resize_keyboard=True)\
+    .add(b4,bq1)
