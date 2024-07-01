@@ -34,15 +34,25 @@ class FSMRegestration(StatesGroup):
 
 @dp.message_handler(commands=['start'])
 async def start(message: types.Message):
-    await message.answer(text="Здравствуйте, вы зарегистрированы?", reply_markup=keyboard.client_kb.logreg)
+    keyboard = InlineKeyboardMarkup()
+    keyboard.add(InlineKeyboardButton(text="Да", callback_data="login"))
+    keyboard.add(InlineKeyboardButton(text="Нет", callback_data="register"))
+    
+    await message.answer(text="Здравствуйте, вы зарегистрированы?", reply_markup=keyboard)
 
-@dp.callback_query_handler(text_contains = ['login'])
+start_completed = False
+
+@dp.callback_query_handler(text_contains=['login'])
 async def start(call: CallbackQuery):
+    global start_completed
+    start_completed = True
     await call.message.answer("Введите свой номер телефона")
 
 @dp.message_handler()
 async def check_number(message: types.Message):
-    global chell_rooms
+    global chell_rooms, start_completed
+    if not start_completed:
+        return 
     conn = sqlite3.connect('super_roflo.db')
     c = conn.cursor()
     number = message.text.lower()
@@ -52,11 +62,12 @@ async def check_number(message: types.Message):
         user_name = result[1] 
         address = result[2]
         chell_rooms = result[4]
-        await message.answer(f"этот номер найден в базе данных. Имя: {user_name}.\nАдрес: {address}", reply_markup=keyboard.client_kb.bnm)
+        await message.answer(f"Этот номер найден в базе данных. Имя: {user_name}.\nАдрес: {address}", reply_markup=keyboard.client_kb.bnm)
         user = message.from_user
         await dp.storage.update_data(user=user, user_name=user_name, address=address)
     else:
         await message.answer(f"Номер {message.text} не найден в базе данных.", reply_markup=keyboard.client_kb.sdj)
+    
     c.close()
     conn.close()
 
@@ -136,7 +147,7 @@ async def delete_items(message: types.Message):
 
 @dp.callback_query_handler(text_contains=['info'])
 async def info(call: types.CallbackQuery):
-    await call.message.answer('чё ты хочешь чмо', reply_markup=keyboard.cjd.asd)
+    await call.message.answer('Какую уборку хотите заказать', reply_markup=keyboard.cjd.asd)
 
 @dp.callback_query_handler(text_contains=['dermo'])
 async def dermo(call: CallbackQuery):
