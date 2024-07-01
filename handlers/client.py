@@ -5,15 +5,16 @@ from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 
+import keyboard.cjd
 import keyboard.client_kb
 from createbot import dp, bot
 from data_base import database
-from keyboard import Regestration_kb
-from keyboard import cjd
+import keyboard
 
 
 conn = sqlite3.connect('super_roflo.db')
 cursor = conn.cursor()
+global chell_rooms
 
 moderator = ['krutoy_cell']
 
@@ -33,7 +34,11 @@ class FSMRegestration(StatesGroup):
 
 @dp.message_handler(commands=['start'])
 async def start(message: types.Message):
-    await message.answer("Привет! Напиши мне имя, и я проверю его наличие в базе данных.")
+    await message.answer(text="Здравствуйте, вы зарегистрированы?", reply_markup=keyboard.client_kb.logreg)
+
+@dp.callback_query_handler(text_contains = ['login'])
+async def start(call: CallbackQuery):
+    await call.message.answer("Введите свой номер телефона")
 
 @dp.message_handler()
 async def check_number(message: types.Message):
@@ -70,16 +75,7 @@ async def load_new_adres(message: types.Message, state: FSMContext):
         data['new_adres'] = message.text
     global new_adres
     new_adres = data['new_adres']
-    await FSMRegestration.new_rooms.set()
-    await message.answer('а комнат сколько?')
-
-@dp.message_handler(state = FSMRegestration.new_rooms)
-async def load_new_rooms(message:types.Message, state: FSMContext):
-    async with state.proxy() as data:
-        data['new_rooms'] = message.text
-    global new_rooms
-    new_rooms = data['new_rooms']
-    await message.answer(f'{new_adres}\n{new_rooms}')
+    await message.answer(f'{new_adres}')
     await message.answer('Уверен?', reply_markup=keyboard.client_kb.qw7e8uh)
     await database.sql_add_command1(state)
     await state.finish()
@@ -113,20 +109,20 @@ async def load_number(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['number'] = message.text
     await FSMRegestration.next()
-    await message.answer('комнаты')
+    await message.answer('Введите комнаты')
+
 
 
 @dp.message_handler(state=FSMRegestration.rooms)
 async def load_rooms(message: types.Message, state: FSMContext):
+    global rooms
     async with state.proxy() as data:
         data['rooms'] = message.text
-        global rooms
-    name = data['name']
-    number = data['number']
-    rooms = data['rooms']
+        name = data['name']
+        number = data['number']
+        roomss = data['rooms']
 
-    await message.answer(f' {name}\n{number}\n{rooms}')
-    await message.answer('Всё верно?', reply_markup=keyboard.client_kb.asdjk)
+    await message.answer(f'{name}\n{number}\n{roomss}',reply_markup=keyboard.client_kb.login)
     await database.sql_add_command(state)
     await state.finish()
 
@@ -145,6 +141,7 @@ async def info(call: types.CallbackQuery):
 @dp.callback_query_handler(text_contains=['dermo'])
 async def dermo(call: CallbackQuery):
     await call.message.answer(f'иди нахер не готово ещё', reply_markup=keyboard.client_kb.zxc3)
+
 @dp.callback_query_handler(text_contains='first')
 async def wqe(call: CallbackQuery):
     await call.message.answer('чё то ещё?', reply_markup=keyboard.client_kb.zxc)
@@ -162,12 +159,13 @@ async def ewq(call: CallbackQuery):
 
 @dp.callback_query_handler(text_contains='call1')
 async def call_service(call: CallbackQuery):
+        await call.message.answer(f'{chell_rooms * 5000}, https://sbp.nspk.ru/?ysclid=ls30ud2rj5955939254', reply_markup=keyboard.client_kb.superrofl)
+        await call.message.delete()
 
-    await call.message.answer(f'{chell_rooms * 5000},https://sbp.nspk.ru/?ysclid=ls30ud2rj5955939254', reply_markup=keyboard.client_kb.superrofl)
-    await call.message.delete()
 
 @dp.callback_query_handler(text_contains='call2')
 async def call_service1(call: CallbackQuery):
+
     await call.message.answer(f'{chell_rooms * 3500}https://sbp.nspk.ru/?ysclid=ls30ud2rj5955939254', reply_markup=keyboard.client_kb.superrofl)
     await call.message.delete()
 
@@ -180,7 +178,7 @@ async def call_service2(call: CallbackQuery):
 
 @dp.callback_query_handler(text_contains='back')
 async def back(call: CallbackQuery):
-    await call.message.answer('Выбери услугу', reply_markup=cjd.asd)
+    await call.message.answer('Выбери услугу', reply_markup=keyboard.cjd.asd)
     await call.message.delete()
 
 @dp.message_handler(state="*", commands='отмена')
